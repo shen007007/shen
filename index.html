@@ -1,0 +1,436 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校园综合服务平台</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: #f5f7fa; color: #333; min-height: 100vh; padding-bottom: 70px; }
+
+        /* 登录页 */
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .login-box { width: 90%; max-width: 380px; padding: 30px; background: #fff; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .login-box h2 { text-align: center; margin-bottom: 8px; color: #333; }
+        .login-box .subtitle { text-align: center; color: #888; font-size: 14px; margin-bottom: 24px; }
+        .login-box input { width: 100%; padding: 14px 16px; margin: 10px 0; border: 1px solid #e0e0e0; border-radius: 12px; font-size: 15px; }
+        .login-box input:focus { outline: none; border-color: #667eea; }
+        .login-box button { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; border-radius: 12px; font-size: 16px; font-weight: 600; margin-top: 16px; cursor: pointer; }
+
+        /* 头像选择 */
+        .avatar-select { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+        .avatar-option { width: 100%; aspect-ratio: 1; border-radius: 50%; cursor: pointer; border: 3px solid transparent; transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 32px; }
+        .avatar-option:hover { transform: scale(1.1); }
+        .avatar-option.selected { border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3); }
+        .avatar-option.male { background: #e3f2fd; }
+        .avatar-option.female { background: #fce4ec; }
+
+        /* 顶部搜索 */
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; padding-top: 16px; }
+        .header h3 { color: #fff; margin-bottom: 12px; font-size: 18px; }
+        .search-box { display: flex; align-items: center; background: #fff; border-radius: 12px; padding: 0 14px; }
+        .search-box span { font-size: 18px; }
+        .search-box input { flex: 1; padding: 12px; border: none; background: transparent; font-size: 15px; }
+        .search-box input:focus { outline: none; }
+
+        /* 分类 */
+        .section { padding: 16px; }
+        .section-title { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
+        .category-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .category-item { background: #fff; padding: 14px 8px; border-radius: 12px; text-align: center; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; transition: all 0.2s; }
+        .category-item:active { transform: scale(0.95); }
+        .category-item .icon { font-size: 24px; margin-bottom: 4px; }
+
+        /* 商品卡片 */
+        .goods-list { padding: 0 16px; }
+        .goods-card { background: #fff; border-radius: 14px; padding: 16px; margin-bottom: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); display: flex; gap: 12px; cursor: pointer; }
+        .goods-img { width: 80px; height: 80px; border-radius: 10px; background: #f0f0f0; display: flex; align-items: center; justify-content: center; font-size: 32px; flex-shrink: 0; }
+        .goods-info { flex: 1; min-width: 0; }
+        .goods-title { font-weight: 600; font-size: 15px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .goods-meta { color: #666; font-size: 13px; margin-bottom: 8px; }
+        .goods-price { color: #ff4757; font-size: 16px; font-weight: 600; }
+        .pay-tags { display: flex; gap: 6px; margin-top: 8px; }
+        .pay-tag { padding: 4px 8px; background: #f5f5f5; border-radius: 6px; font-size: 11px; color: #666; }
+
+        /* 底部导航 */
+        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; border-top: 1px solid #eee; display: flex; z-index: 100; }
+        .tab-item { flex: 1; padding: 12px; text-align: center; color: #999; font-size: 12px; cursor: pointer; border: none; background: none; transition: color 0.2s; }
+        .tab-item.active { color: #667eea; }
+        .tab-item .tab-icon { font-size: 22px; margin-bottom: 2px; display: block; }
+
+        /* 交流区 */
+        .post-card { background: #fff; border-radius: 14px; padding: 16px; margin: 0 16px 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+        .post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .post-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; }
+        .post-avatar.male { background: #e3f2fd; }
+        .post-avatar.female { background: #fce4ec; }
+        .post-user { flex: 1; }
+        .post-name { font-weight: 600; font-size: 14px; }
+        .post-school { color: #888; font-size: 12px; }
+        .post-title { font-weight: 600; font-size: 15px; margin-bottom: 6px; }
+        .post-content { color: #666; font-size: 14px; line-height: 1.5; margin-bottom: 10px; }
+        .post-actions { display: flex; gap: 8px; }
+        .post-btn { padding: 8px 14px; border-radius: 8px; border: none; font-size: 13px; cursor: pointer; background: #f5f5f5; }
+        .post-btn.primary { background: #667eea; color: #fff; }
+
+        /* 发布表单 */
+        .publish-box { background: #fff; border-radius: 14px; padding: 16px; margin: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+        .publish-box input, .publish-box textarea, .publish-box select { width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #e0e0e0; border-radius: 10px; font-size: 14px; font-family: inherit; }
+        .publish-box textarea { resize: none; height: 80px; }
+        .publish-box button { width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border: none; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; }
+
+        /* 广告位 */
+        .ad-card { border-radius: 14px; padding: 20px; margin: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+        .ad-card.school { background: linear-gradient(135deg, #fff9c4 0%, #ffecb3 100%); }
+        .ad-card.study { background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%); }
+        .ad-card.job { background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); }
+        .ad-title { font-weight: 600; font-size: 16px; margin-bottom: 6px; }
+        .ad-desc { font-size: 13px; opacity: 0.8; }
+
+        /* 个人中心 */
+        .profile-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px 20px; text-align: center; color: #fff; }
+        .profile-avatar { width: 80px; height: 80px; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 40px; background: rgba(255,255,255,0.3); }
+        .profile-name { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+        .profile-info { font-size: 14px; opacity: 0.9; }
+        .profile-stats { display: flex; background: #fff; margin: 16px; border-radius: 12px; padding: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+        .stat-item { flex: 1; text-align: center; }
+        .stat-num { font-size: 20px; font-weight: 600; color: #667eea; }
+        .stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+        .menu-list { background: #fff; margin: 0 16px; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,0.04); }
+        .menu-item { display: flex; align-items: center; justify-content: space-between; padding: 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+        .menu-item:last-child { border-bottom: none; }
+        .menu-item .left { display: flex; align-items: center; gap: 12px; }
+        .menu-item .menu-icon { font-size: 20px; }
+        .menu-item .arrow { color: #ccc; }
+        .disclaimer { text-align: center; font-size: 12px; color: #999; padding: 20px; line-height: 1.6; }
+
+        /* 页面切换 */
+        .page { display: none; }
+        .page.active { display: block; }
+
+        /* Toast提示 */
+        .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: #fff; padding: 12px 24px; border-radius: 8px; font-size: 14px; z-index: 2000; display: none; }
+
+        /* 空状态 */
+        .empty-state { text-align: center; padding: 40px; color: #999; }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+        /* 商品详情弹窗 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1500; }
+        .modal-overlay.active { display: flex; }
+        .modal-content { background: #fff; width: 90%; max-width: 380px; border-radius: 16px; padding: 20px; max-height: 80vh; overflow-y: auto; }
+        .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 12px; }
+        .modal-close { float: right; font-size: 24px; cursor: pointer; color: #999; line-height: 1; }
+        .modal-btn { width: 100%; padding: 12px; background: #667eea; color: #fff; border: none; border-radius: 10px; font-size: 15px; margin-top: 12px; cursor: pointer; }
+        .modal-info { margin: 12px 0; color: #666; font-size: 14px; }
+        .modal-pay { display: flex; gap: 8px; margin-top: 12px; }
+    </style>
+</head>
+<body>
+    <!-- 登录页 -->
+    <div class="login-overlay" id="loginPage">
+        <div class="login-box">
+            <h2>🎓 校园平台</h2>
+            <p class="subtitle">登录后享受更多服务</p>
+            <input type="text" id="nickname" placeholder="昵称（2-8字）">
+            <input type="text" id="school" placeholder="学校名称">
+            <input type="text" id="major" placeholder="专业">
+            <p style="margin: 16px 0 8px; font-size: 14px; color: #666;">选择头像</p>
+            <div class="avatar-select" id="avatarSelect">
+                <div class="avatar-option male" data-avatar="👨">👨</div>
+                <div class="avatar-option male" data-avatar="👨‍🎓">👨‍🎓</div>
+                <div class="avatar-option male" data-avatar="🧑‍💻">🧑‍💻</div>
+                <div class="avatar-option male" data-avatar="👱">👱</div>
+                <div class="avatar-option female" data-avatar="👩">👩</div>
+                <div class="avatar-option female" data-avatar="👩‍🎓">👩‍🎓</div>
+                <div class="avatar-option female" data-avatar="👩‍💼">👩‍💼</div>
+                <div class="avatar-option female" data-avatar="👱‍♀️">👱‍♀️</div>
+            </div>
+            <button onclick="doLogin()">进入平台</button>
+        </div>
+    </div>
+
+    <!-- 首页 -->
+    <div class="page active" id="page1">
+        <div class="header">
+            <h3>📚 首页 - 闲置物品</h3>
+            <div class="search-box">
+                <span>🔍</span>
+                <input type="text" id="searchInput" placeholder="搜索书籍、资料、闲置..." oninput="doSearch()">
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">📖 学习工具</div>
+            <div class="category-grid">
+                <div class="category-item" onclick="filterCategory('课本教材')"><div class="icon">📚</div><div>课本教材</div></div>
+                <div class="category-item" onclick="filterCategory('学习资料')"><div class="icon">📝</div><div>学习资料</div></div>
+                <div class="category-item" onclick="filterCategory('文具用品')"><div class="icon">✏️</div><div>文具用品</div></div>
+                <div class="category-item" onclick="filterCategory('电子设备')"><div class="icon">📱</div><div>电子设备</div></div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <div class="section-title">🛒 闲置物品</div>
+            <div class="category-grid">
+                <div class="category-item" onclick="filterCategory('自行车')"><div class="icon">🚲</div><div>自行车</div></div>
+                <div class="category-item" onclick="filterCategory('电动车')"><div class="icon">🛵</div><div>电动车</div></div>
+                <div class="category-item" onclick="filterCategory('衣物鞋帽')"><div class="icon">👕</div><div>衣物鞋帽</div></div>
+                <div class="category-item" onclick="filterCategory('化妆品')"><div class="icon">💄</div><div>化妆品</div></div>
+                <div class="category-item" onclick="filterCategory('数码产品')"><div class="icon">💻</div><div>数码产品</div></div>
+                <div class="category-item" onclick="filterCategory('生活用品')"><div class="icon">🧸</div><div>生活用品</div></div>
+                <div class="category-item" onclick="filterCategory('运动器材')"><div class="icon">⚽</div><div>运动器材</div></div>
+                <div class="category-item" onclick="filterCategory('零食饮品')"><div class="icon">🍪</div><div>零食饮品</div></div>
+                <div class="category-item" onclick="filterCategory('乐器')"><div class="icon">🎸</div><div>乐器</div></div>
+                <div class="category-item" onclick="filterCategory('生活电器')"><div class="icon">🎥</div><div>生活电器</div></div>
+                <div class="category-item" onclick="filterCategory('图书杂志')"><div class="icon">📖</div><div>图书杂志</div></div>
+                <div class="category-item" onclick="filterCategory('其他闲置')"><div class="icon">📦</div><div>其他闲置</div></div>
+            </div>
+        </div>
+        
+        <div class="section-title" style="padding: 0 16px;">🔥 热门商品</div>
+        <div class="goods-list" id="goodsList"></div>
+    </div>
+
+    <!-- 交流区 -->
+    <div class="page" id="page2">
+        <div class="header">
+            <h3>💬 校内交流区</h3>
+            <p style="color: rgba(255,255,255,0.8); font-size: 13px; margin-top: 4px;">仅限本校同学交流</p>
+        </div>
+        
+        <div class="publish-box">
+            <select id="postType">
+                <option value="">选择类型</option>
+                <option value="代取快递">📦 代取快递</option>
+                <option value="代打印">🖨️ 代打印</option>
+                <option value="合租信息">🏠 合租信息</option>
+                <option value="考研资料">📚 考研资料</option>
+                <option value="考证资料">📝 考证资料</option>
+                <option value="考公资料">📋 考公资料</option>
+                <option value="留学交流">🌍 留学交流</option>
+                <option value="其他">📌 其他</option>
+            </select>
+            <input type="text" id="postTitle" placeholder="标题（简要描述）">
+            <textarea id="postContent" placeholder="详细内容：价格、时间、地点、要求等"></textarea>
+            <button onclick="publishPost()">发布到交流区</button>
+        </div>
+        
+        <div id="postList"></div>
+    </div>
+
+    <!-- 广告位 -->
+    <div class="page" id="page3">
+        <div class="header"><h3>📢 广告推荐</h3></div>
+        <div class="ad-card school"><div class="ad-title">🏪 校园周边商家合作</div><div class="ad-desc">餐饮、奶茶店、打印店、健身房、驾校推广</div></div>
+        <div class="ad-card study"><div class="ad-title">📖 考研/考证/考公/留学</div><div class="ad-desc">资料、课程、辅导、咨询合作</div></div>
+        <div class="ad-card job"><div class="ad-title">💼 兼职招聘</div><div class="ad-desc">校园代理、助教、客服、活动协助</div></div>
+        <div class="ad-card" style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);"><div class="ad-title">🎵 才艺展示/演出</div><div class="ad-desc">校园歌手、舞蹈、表演、主持等</div></div>
+        <div class="ad-card" style="background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%);"><div class="ad-title">🔧 技能服务</div><div class="ad-desc">维修、拍照、剪辑、编程、设计</div></div>
+    </div>
+
+    <!-- 个人中心 -->
+    <div class="page" id="page4">
+        <div class="profile-header">
+            <div class="profile-avatar" id="profileAvatar">👨</div>
+            <div class="profile-name" id="profileName">用户</div>
+            <div class="profile-info" id="profileInfo">学校 | 专业</div>
+        </div>
+        
+        <div class="profile-stats">
+            <div class="stat-item"><div class="stat-num" id="myPostsCount">0</div><div class="stat-label">我的发布</div></div>
+            <div class="stat-item"><div class="stat-num" id="myGoodsCount">0</div><div class="stat-label">我的商品</div></div>
+            <div class="stat-item"><div class="stat-num" id="myFollowsCount">0</div><div class="stat-label">关注</div></div>
+        </div>
+        
+        <div class="menu-list">
+            <div class="menu-item" onclick="showMyContent('posts')"><div class="left"><span class="menu-icon">📋</span>我的发布</div><span class="arrow">›</span></div>
+            <div class="menu-item" onclick="showMyContent('goods')"><div class="left"><span class="menu-icon">🛒</span>我的商品</div><span class="arrow">›</span></div>
+            <div class="menu-item" onclick="showMyContent('follows')"><div class="left"><span class="menu-icon">❤️</span>我的关注</div><span class="arrow">›</span></div>
+            <div class="menu-item" onclick="showToast('编辑资料功能开发中')"><div class="left"><span class="menu-icon">⚙️</span>编辑资料</div><span class="arrow">›</span></div>
+            <div class="menu-item" onclick="showToast('帮助与反馈功能开发中')"><div class="left"><span class="menu-icon">❓</span>帮助与反馈</div><span class="arrow">›</span></div>
+        </div>
+        
+        <div class="disclaimer">本平台仅提供信息展示服务，不承担交易、人身、财产等任何责任。<br>交易请谨慎，线下当面交易注意安全。</div>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="tab-bar">
+        <div class="tab-item active" onclick="switchTab(1)"><span class="tab-icon">🏠</span>首页</div>
+        <div class="tab-item" onclick="switchTab(2)"><span class="tab-icon">💬</span>交流</div>
+        <div class="tab-item" onclick="switchTab(3)"><span class="tab-icon">📢</span>广告</div>
+        <div class="tab-item" onclick="switchTab(4)"><span class="tab-icon">👤</span>我的</div>
+    </div>
+
+    <!-- 商品详情弹窗 -->
+    <div class="modal-overlay" id="goodsModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">×</span>
+            <div class="modal-title" id="modalTitle">商品详情</div>
+            <div id="modalBody"></div>
+            <button class="modal-btn" onclick="contactSeller()">联系卖家</button>
+        </div>
+    </div>
+
+    <!-- Toast提示 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ========== 数据定义 ==========
+        let currentUser = { nickname: '', school: '', major: '', avatar: '👨', gender: 'male', isLoggedIn: false };
+        
+        const sampleGoods = [
+            { id: 1, title: '高数上下册', price: 25, condition: '九成新', category: '课本教材', icon: '📚', payTypes: ['微信', '支付宝', '线下'], desc: '高等数学教材，上下册全套' },
+            { id: 2, title: '二手自行车', price: 180, condition: '正常使用', category: '自行车', icon: '🚲', payTypes: ['微信', '支付宝', '线下'], desc: '8成新，刹车灵敏' },
+            { id: 3, title: '考研英语词汇书', price: 15, condition: '全新', category: '学习资料', icon: '📝', payTypes: ['微信', '支付宝', '线下'], desc: '2024版考研英语词汇大全' },
+            { id: 4, title: 'iPad Air 4', price: 2800, condition: '95新', category: '数码产品', icon: '💻', payTypes: ['微信', '支付宝', '线下'], desc: '256G WiFi版，无划痕' },
+            { id: 5, title: '电动自行车', price: 800, condition: '8成新', category: '电动车', icon: '🛵', payTypes: ['微信', '支付宝', '线下'], desc: '续航50公里，证件齐全' },
+            { id: 6, title: '素描套装', price: 50, condition: '9成新', category: '文具用品', icon: '✏️', payTypes: ['微信', '支付宝', '线下'], desc: '包含铅笔、橡皮、画纸等' },
+            { id: 7, title: '大学物理教材', price: 20, condition: '八成新', category: '课本教材', icon: '📚', payTypes: ['微信', '支付宝', '线下'], desc: '大学物理上册' },
+            { id: 8, title: '瑜伽垫+哑铃', price: 60, condition: '9成新', category: '运动器材', icon: '⚽', payTypes: ['微信', '支付宝', '线下'], desc: '瑜伽垫1.8米，哑铃5kg' },
+            { id: 9, title: '电动牙刷', price: 80, condition: '全新', category: '生活用品', icon: '🧸', payTypes: ['微信', '支付宝', '线下'], desc: '未拆封，型号见图片' },
+            { id: 10, title: '尤克里里', price: 150, condition: '9成新', category: '乐器', icon: '🎸', payTypes: ['微信', '支付宝', '线下'], desc: '23寸，适合初学者' },
+        ];
+
+        const samplePosts = [
+            { id: 1, type: '代取快递', title: '代取快递 3元/件', content: '送到宿舍门口，可预约时间', user: '李同学', avatar: '👨‍🎓', school: '本校' },
+            { id: 2, type: '考研资料', title: '考研数学资料共享', content: '张宇+汤家凤全套电子版，可免费分享', user: '王同学', avatar: '👩‍🎓', school: '本校' },
+            { id: 3, type: '合租信息', title: '女生合租找室友', content: '近学校，安全干净，限女生', user: '刘同学', avatar: '👩', school: '本校' },
+            { id: 4, type: '代打印', title: '代打印服务', content: '黑白0.5元/张，彩色2元/张', user: '张同学', avatar: '🧑‍💻', school: '本校' },
+        ];
+
+        let myPosts = [];
+        let myGoods = [];
+        let myFollows = [];
+        const badWords = ['傻逼', '操', '妈的', '去死', '垃圾', '违法', '赌博', '色情', '黄赌毒', '代考', '枪支'];
+        let currentCategory = '';
+        let currentSearch = '';
+        let currentGoodsId = null;
+
+        // ========== 初始化 ==========
+        document.querySelectorAll('.avatar-option').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.avatar-option').forEach(i => i.classList.remove('selected'));
+                this.classList.add('selected');
+                currentUser.avatar = this.dataset.avatar;
+                currentUser.gender = this.classList.contains('female') ? 'female' : 'male';
+            });
+        });
+        document.querySelector('.avatar-option').classList.add('selected');
+
+        window.onload = function() {
+            const savedUser = localStorage.getItem('campusUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                currentUser.isLoggedIn = true;
+                document.getElementById('loginPage').style.display = 'none';
+                document.getElementById('profileAvatar').textContent = currentUser.avatar;
+                document.getElementById('profileName').textContent = currentUser.nickname;
+                document.getElementById('profileInfo').textContent = currentUser.school + ' | ' + currentUser.major;
+                renderGoods();
+                renderPosts();
+                updateStats();
+            } else {
+                renderGoods();
+                renderPosts();
+            }
+        };
+
+        // ========== 登录 ==========
+        function doLogin() {
+            const nick = document.getElementById('nickname').value.trim();
+            const school = document.getElementById('school').value.trim();
+            const major = document.getElementById('major').value.trim();
+
+            if (!nick || !school || !major) { showToast('请填写完整信息'); return; }
+            if (nick.length < 2 || nick.length > 8) { showToast('昵称2-8个字'); return; }
+            for (let word of badWords) { if (nick.includes(word)) { showToast('昵称包含违规词语'); return; } }
+
+            currentUser.nickname = nick;
+            currentUser.school = school;
+            currentUser.major = major;
+            currentUser.isLoggedIn = true;
+
+            localStorage.setItem('campusUser', JSON.stringify(currentUser));
+
+            document.getElementById('profileAvatar').textContent = currentUser.avatar;
+            document.getElementById('profileName').textContent = currentUser.nickname;
+            document.getElementById('profileInfo').textContent = currentUser.school + ' | ' + currentUser.major;
+            document.getElementById('loginPage').style.display = 'none';
+            
+            renderGoods();
+            renderPosts();
+            updateStats();
+            showToast('登录成功！');
+        }
+
+        // ========== 页面切换 ==========
+        function switchTab(pageNum) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page' + pageNum).classList.add('active');
+            document.querySelectorAll('.tab-item').forEach((item, index) => {
+                item.classList.toggle('active', index + 1 === pageNum);
+            });
+        }
+
+        // ========== 搜索和筛选 ==========
+        function doSearch() {
+            currentSearch = document.getElementById('searchInput').value.trim();
+            renderGoods();
+        }
+
+        function filterCategory(category) {
+            currentCategory = currentCategory === category ? '' : category;
+            renderGoods();
+        }
+
+        // ========== 渲染商品 ==========
+        function renderGoods() {
+            const list = document.getElementById('goodsList');
+            let goods = [...sampleGoods, ...myGoods];
+            
+            if (currentCategory) goods = goods.filter(g => g.category.includes(currentCategory));
+            if (currentSearch) goods = goods.filter(g => g.title.toLowerCase().includes(currentSearch.toLowerCase()));
+
+            if (goods.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>暂无商品</p></div>';
+                return;
+            }
+
+            list.innerHTML = goods.map(g => `
+                <div class="goods-card" onclick="showGoodsDetail(${g.id})">
+                    <div class="goods-img">${g.icon}</div>
+                    <div class="goods-info">
+                        <div class="goods-title">${g.title}</div>
+                        <div class="goods-meta">${g.condition}</div>
+                        <div class="goods-price">¥${g.price}</div>
+                        <div class="pay-tags">${g.payTypes.map(t => `<span class="pay-tag">${t}</span>`).join('')}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ========== 渲染帖子 ==========
+        function renderPosts() {
+            const list = document.getElementById('postList');
+            const allPosts = [...samplePosts, ...myPosts];
+            
+            if (allPosts.length === 0) {
+                list.innerHTML = '<div class="empty-state"><div class="empty-icon">💬</div><p>暂无帖子，快来发布吧</p></div>';
+                return;
+            }
+
+            list.innerHTML = allPosts.map(p => `
+                <div class="post-card">
+                    <div class="post-header">
+                        <div class="post-avatar ${['👩', '👩‍🎓', '👩‍💼', '👱‍♀️'].includes(p.avatar) ? 'female' : 'male'}" onclick="viewUser('${p.user}')">${p.avatar}</div>
+                        <div class="post-user">
+                            <div class="post-name">${p.user}</div>
+                            <div class="post-school">${p.school}</div>
+                        </div>
+                    </div>
+                    <div class="post-title">${p.title}</div>
+                    <div class="post-content">${p.content}</div>
+                    <div class="post-actions">
+                        <button class="post-btn primary" onclick="followUser('${p.user}')">关注</button>
+                        <button class="post-btn" onclick="chatUser('${p
